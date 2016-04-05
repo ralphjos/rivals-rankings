@@ -1,12 +1,22 @@
 import os
-from flask import Flask
+from flask import Flask, Response,render_template, request, redirect
+import pymongo
+from pymongo import MongoClient
 
-app = Flask(__name__)
 
-@app.route("/")
-def hello():
-    return "Hello world!"
+MONGO_URL = os.environ.get('MONGOLAB_URI')
+client = MongoClient(MONGO_URL)
+
+# Specify the database
+db = client.heroku_7xvlpzvh
+collection = db.shoutouts
+
+application = Flask(__name__)
+
+@application.route("/", methods=['GET'])
+def index():
+    shouts = collection.find()
+    return render_template('index.html', shouts=shouts)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    application.run()
