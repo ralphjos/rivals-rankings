@@ -17,7 +17,9 @@ def get_tournament_data(tournament):
     def get_match_data(matches):
         match_data = []
         for match in matches:
-            completed_at = match['match']['completed_at']
+            completed_at = match['match']['updated_at']
+            if completed_at == None:
+                print tournament
             winner_id = match['match']['winner_id']
             loser_id = match['match']['loser_id']
             data = {'completed_at': completed_at, 'winner_id': winner_id, 'loser_id': loser_id}
@@ -28,7 +30,7 @@ def get_tournament_data(tournament):
         player_data = []
         for player in players:
             id = player['participant']['id']
-            name = player['participant']['username']
+            name = player['participant']['challonge_username']
             data = {'id': id, 'name': name}
             player_data.append(data)
         return player_data
@@ -58,6 +60,7 @@ def main(client=CLIENT):
     # fetch tournament data
     tournament_data = None
     for tournament in TOURNAMENTS:
+        print "Fetching data for tournament: " + tournament
         tournament_data = get_tournament_data(tournament)
         upload_tournament_data(tournament_data)
 

@@ -2,3 +2,4 @@
 node_modules/
 venv/
 data_processing/config.py
+data_processing/data/
