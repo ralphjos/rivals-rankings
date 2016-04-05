@@ -1,5 +1,5 @@
 {
- 	"name": "workspace-gulpdemo",
+ 	"name": "rivals_rankings",
 	"version": "1.0.0",
 	"description": "$ npm install -g gulp $ cd myproj $ npm install gulp --save-dev",
 	"main": "gulpfile.js",

@@ -34,4 +34,7 @@ npm install
 ```
 
 To run the application with Browsersync
-run `gulp`
+```
+cd frontend
+gulp
+```
