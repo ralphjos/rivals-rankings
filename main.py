@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, Response, render_template
+from flask import Flask, Response, redirect, url_for
 
 application = Flask(__name__,
                     template_folder='frontend')
@@ -11,7 +11,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @application.route("/", methods=['GET'])
 def index():
-    return render_template('index.html')
+    return redirect(url_for('rankings'), code=302)
 
 
 @application.route("/rankings")
