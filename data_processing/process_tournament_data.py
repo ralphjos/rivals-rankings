@@ -22,6 +22,7 @@ import trueskill
 
 from collections import defaultdict
 
+
 def update_all_tournament_matches(tournament):
     """ Update all tournament matches for a tournament to use the tag that the
     player entered as rather than an id. """
@@ -45,23 +46,14 @@ def update_player_trueskill(tournament, ratings_map):
         winner, loser = match['winner_id'], match['loser_id']
         # If the user exists in our map, we will take their current rating.
         # Otherwise we will initialize a 0 Rating placeholder player.
-        winner_rating = ratings_map.get(winner, trueskill.Rating(0))
-        loser_rating = ratings_map.get(loser, trueskill.Rating(0))
+        winner_rating = ratings_map.get(winner, trueskill.Rating(25, 25 / 3.0))
+        loser_rating = ratings_map.get(loser, trueskill.Rating(25, 25 / 3.0))
         winner_rating, loser_rating = trueskill.rate_1vs1(winner_rating, loser_rating)
         # Update the dictionary with new ratings
         ratings_map[winner] = winner_rating
         ratings_map[loser] = loser_rating
 
     return ratings_map
-
-
-def build_user_matches_list(tournament, player_matches):
-    """ Build list of matches for each user."""
-    for match in tournament['matches']:
-        winner, loser = match['winner_id'], match['loser_id']
-        player_matches[winner].append(match)
-        player_matches[loser].append(match)
-    return player_matches
 
 
 def build_user_matches_list(tournament, player_matches):
@@ -80,14 +72,13 @@ def update_rankings(ratings_map,
     list to a json_file. """
     rankings = []
     all_ratings = [(key, val) for key, val in ratings_map.items()]
-    all_ratings.sort(key=lambda x: x[1].mu - 2 * x[1].sigma, reverse=True)
-    print "ratings: " + repr(all_ratings)
+    all_ratings.sort(key=lambda x: x[1].mu - 3 * x[1].sigma, reverse=True)
     for index, (player_name, rating) in enumerate(all_ratings):
         rank = index + 1
-        rankings.append({'name': player_name, 'rating': rating.mu - 2 * rating.sigma, 'rank': rank})
+        rankings.append({'name': player_name, 'rating': rating.mu - 3 * rating.sigma, 'rank': rank})
         # Update user data with new rank and rating
         if user_collection:
-            update_command = {'$set': {'rank': rank, 'rating': rating.mu - 2 * rating.sigma}}
+            update_command = {'$set': {'rank': rank, 'rating': rating.mu - 3 * rating.sigma}}
             user_collection.update_one({'tag': player_name},
                                        update_command,
                                        upsert=True)

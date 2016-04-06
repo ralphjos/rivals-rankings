@@ -8,17 +8,19 @@ from config import CHALLONGE_KEY, TOURNAMENTS
 CLIENT = pymongo.MongoClient()
 TOURNAMENTS = TOURNAMENTS
 
+
 def get_tournament_data(tournament):
     """ Query challonge API for player and match details.
 
-    :param tournament_id String: Challonge tournament ID
+    :param tournament: Challonge tournament id
     :returns list, list:
     """
-    def get_match_data(matches):
+
+    def get_match_data(match_list):
         match_data = []
-        for match in matches:
+        for match in match_list:
             completed_at = match['match']['updated_at']
-            if completed_at == None:
+            if completed_at is None:
                 print tournament
             winner_id = match['match']['winner_id']
             loser_id = match['match']['loser_id']
@@ -26,9 +28,9 @@ def get_tournament_data(tournament):
             match_data.append(data)
         return match_data
 
-    def get_player_data(players):
+    def get_player_data(player_list):
         player_data = []
-        for player in players:
+        for player in player_list:
             id = player['participant']['id']
             name = player['participant']['challonge_username']
             data = {'id': id, 'name': name}
@@ -47,10 +49,12 @@ def get_tournament_data(tournament):
         'created_at': players[-1]['participant']['created_at']
     }
 
+
 def upload_tournament_data(data, client=CLIENT):
     """ Insert tournament data into Mongo."""
     tournaments_collection = client['production']['tournaments']
     tournaments_collection.insert(data)
+
 
 def main(client=CLIENT):
     # clear current tournament data
@@ -58,11 +62,11 @@ def main(client=CLIENT):
     db.drop_collection('tournaments')
 
     # fetch tournament data
-    tournament_data = None
     for tournament in TOURNAMENTS:
         print "Fetching data for tournament: " + tournament
         tournament_data = get_tournament_data(tournament)
         upload_tournament_data(tournament_data)
+
 
 if __name__ == '__main__':
     main()
