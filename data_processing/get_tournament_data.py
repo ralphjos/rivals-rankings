@@ -2,10 +2,12 @@
 Query Challonge for tournament data and upsert to Mongo.
 """
 import pymongo
+import os
 from requests import get
-from config import CHALLONGE_KEY, TOURNAMENTS
+from config import TOURNAMENTS
 
-CLIENT = pymongo.MongoClient()
+CLIENT = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
+CHALLONGE_KEY = os.environ.get('CHALLONGE_KEY')
 TOURNAMENTS = TOURNAMENTS
 
 

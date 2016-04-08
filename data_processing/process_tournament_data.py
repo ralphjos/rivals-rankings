@@ -17,6 +17,7 @@ Upsert Data
 - Upsert ratings to user records & upsert ranking to user record.
 """
 import json
+import os
 import pymongo
 import trueskill
 
@@ -100,7 +101,7 @@ def build_all_players_list(ratings_map, outfile='data/all_players.json'):
 def main():
     """ Nightly processing main hook."""
     # Initialize pointers to Mongo collections
-    client = pymongo.MongoClient()
+    client = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
     db = client['production']
     db.drop_collection('users')
     tournaments_collection = db['tournaments']
