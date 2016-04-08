@@ -7,7 +7,7 @@ Handlebars.registerHelper('list', function(items, options) {
 
     var rating = item.rating
 
-    var out = out + "<tr>" + "<td>" + ranking + "</td>" + "<td>" + player + "</td>" + "<td>" + rating + "</td>" + "</tr>";
+    out = out + "<tr>" + "<td>" + ranking + "</td>" + "<td>" + player + "</td>" + "<td>" + rating + "</td>" + "</tr>";
   }
   return out;
 });

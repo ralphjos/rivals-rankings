@@ -83,14 +83,15 @@ def update_rankings(ratings_map,
                                        update_command,
                                        upsert=True)
 
+    ranks = {"ranks": rankings}
     with open(outfile, 'w') as ranking_file:
-        ranking_file.write(json.dumps(rankings))
-    return rankings
+        ranking_file.write(json.dumps(ranks))
+    return ranks
 
 
 def build_all_players_list(ratings_map, outfile='data/all_players.json'):
     """ Build a list of all players and output to a json file."""
-    all_players = [x for x in ratings_map.keys()]
+    all_players = {"players": [x for x in ratings_map.keys()]}
     with open(outfile, 'w') as all_players_file:
         all_players_file.write(json.dumps(all_players))
     return all_players
