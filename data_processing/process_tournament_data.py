@@ -81,14 +81,16 @@ def update_rankings(ratings_map,
     for player, player_ratings in ratings_map.items():
         for region, rating in player_ratings.items():
             regional_ratings = ratings_by_region.setdefault(region, [])
-            regional_ratings.append({'player': player, 'rating': rating.mu - 3 * rating.sigma})
+            regional_ratings.append({'name': player, 'rating': rating.mu - 3 * rating.sigma})
 
     for region, ratings in ratings_by_region.items():
         ratings.sort(key=lambda x: x['rating'], reverse=True)
+        for index, rating in enumerate(ratings):
+            rating['rank'] = index + 1
 
     for region, ratings in ratings_by_region.items():
         with open(outdir + region + '_rankings.json', 'w') as ranking_file:
-            ranking_file.write(json.dumps(ratings))
+            ranking_file.write(json.dumps({'ranks': ratings}))
 
     # TODO: update ratings data in mongo
 
