@@ -40,6 +40,10 @@ body {
     color: #FF6600;
 }
 
+.navbar .nav > li > ul > li > a {
+    color: #FF6600;
+}
+
 .navbar .nav > li > a:hover{
     background-color: #36313B;
     color:#FF6600;
@@ -68,6 +72,12 @@ body {
 .navbar .nav .open .dropdown-menu > li > a:hover,
 .navbar .nav .open .dropdown-menu > li > a:focus{
     background-color:#1A1A1A
+}
+
+/* collapsed navbar dropdown links */
+
+#bs-example-navbar-collapse-1 > ul > li.dropdown.open > ul > li > a{
+    color:#FF6600;
 }
 
 p {
