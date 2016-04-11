@@ -9,9 +9,15 @@
           <tr><th>Rank</th><th>Player</th><th>Rating</th>
           </tr>
         </thead>
-          <tbody>
-            {{#list ranks}}<b>{{player}}</b> -- {{rating}}{{/list}}
-          </tbody>
+        <tbody>
+          {{#list ranks}}
+            <tr>
+              <td>{{rank}}</td>
+              <td><b>{{name}}</b></td>
+              <td>{{rating}}</td>
+            </tr>
+          {{/list}}
+        </tbody>
       </table>
     </div>
   </div>

@@ -48,7 +48,8 @@ def get_tournament_data(tournament):
         'players': get_player_data(players),
         'matches': get_match_data(matches),
         'tournament': tournament,
-        'created_at': players[-1]['participant']['created_at']
+        'created_at': players[-1]['participant']['created_at'],
+        'region': determine_region(tournament)
     }
 
 
@@ -58,11 +59,33 @@ def upload_tournament_data(data, client=CLIENT):
     tournaments_collection.insert(data)
 
 
+# regions
+EAST = 'east'
+CENTRAL = 'central'
+WEST = 'west'
+GET_GOOD = 'getgood'
+NATIONAL = 'national'
+
+
+def determine_region(tournament):
+    """ Determine region from tournament name """
+    tournament_name = tournament.lower()
+    if WEST in tournament_name:
+        return WEST
+    elif CENTRAL in tournament_name:
+        return CENTRAL
+    elif EAST in tournament_name:
+        return EAST
+    else:
+        return NATIONAL
+
+
 def main(client=CLIENT):
     # clear current tournament data
     db = client['production']
     db.drop_collection('tournaments')
 
+    print CHALLONGE_KEY
     # fetch tournament data
     for tournament in TOURNAMENTS:
         print "Fetching data for tournament: " + tournament
