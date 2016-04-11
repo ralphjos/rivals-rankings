@@ -15,10 +15,11 @@ def index():
     return render_template('index.html')
 
 
-@application.route("/rankings")
-def rankings():
+
+@application.route("/rankings/<region>")
+def rankings(region='current'):
     """ Return raw json from file. """
-    path = os.path.join(CURRENT_DIR, 'data_processing/data/current_rankings.json')
+    path = os.path.join(CURRENT_DIR, 'data_processing/data/' + region + '_rankings.json')
     with open(path, 'r') as data:
         ranking_data = json.load(data)
     return Response(json.dumps(ranking_data),

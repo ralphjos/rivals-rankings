@@ -1,5 +1,7 @@
 var Rankings = Backbone.Model.extend({
-  url: '/rankings'
+  url: function() {
+    return '/rankings/' + this.attributes.region;
+  }
 });
 
 var AllPlayers = Backbone.Model.extend({
