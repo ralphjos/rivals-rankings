@@ -1,3 +1,19 @@
+var NavView = Backbone.View.extend({
+  el: '#nav',
+
+  initialize: function(){
+    this.render();
+  },
+
+  render: function(){
+    var navPointer = this;
+    $.get('frontend/templates/navbar.html', function(navbarTemplate){
+      navPointer.$el.html(navbarTemplate);
+    });
+    return this;
+  },
+});
+
 var RankingView = Backbone.View.extend({
   el: '#container',
 

@@ -1,0 +1,107 @@
+/* Universal */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color:#1A1A1A;
+    color: white;
+    overflow-x: hidden;
+}
+
+.panel {
+    background-color:#1A1A1A;
+    border: 0 !important;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+.panel-default>.panel-heading{
+    background-color:#1A1A1A;
+    color: white;
+}
+
+.panel-title{
+    font-size:20px;
+}
+
+.table-striped>tbody>tr:nth-child(odd)>td,
+.table-striped>tbody>tr:nth-child(odd)>th {
+    background-color: #313131;
+}
+
+
+.navbar {
+    font-family: "Ubuntu", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+    text-transform:uppercase;background-color:#1A1A1A;border:0;
+}
+
+/* navbar links */
+
+.navbar .nav > li >a {
+    color: #FF6600;
+}
+
+.navbar .nav > li > a:hover{
+    background-color: #36313B;
+    color:#FF6600;
+}
+
+/* navbar link when active */
+
+.navbar .nav > li > a:focus{
+    background-color: #36313B;
+    color:#FF6600;
+}
+
+.navbar .navbar-brand{
+    color:#FFCC66
+}
+
+.navbar .navbar-brand:hover, .navbar .navbar-brand:focus{
+    background-color:#1A1A1A;
+    color:#FFCC66
+}
+
+.navbar .nav .open .dropdown-menu{
+    background-color:#1A1A1A
+}
+
+.navbar .nav .open .dropdown-menu > li > a:hover,
+.navbar .nav .open .dropdown-menu > li > a:focus{
+    background-color:#1A1A1A
+}
+
+p {
+    font-size: 20px;
+}
+
+p.small {
+    font-size: 16px;
+}
+
+.table th {
+    border: 0 !important;
+    text-align: center;
+}
+
+.table td {
+    border:0 !important;
+}
+
+.vcenter{
+    margin-top: 33px;
+}
+
+a,
+a:hover,
+a:focus,
+a:active,
+a.active {
+    outline: 0;
+    color: #18bc9c;
+}
+
+/* Rankings */
+
+.rankings_table {
+    text-align: center
+}

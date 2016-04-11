@@ -1,3 +1,5 @@
+var navView = new NavView();
+
 // Build application router
 var AppRouter = Backbone.Router.extend({
   routes: {
