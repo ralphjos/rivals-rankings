@@ -38,3 +38,5 @@ TOURNAMENTS = NATIONAL_TOURNAMENTS + \
               WESTERN_TOURNAMENTS + \
               CENTRAL_TOURNAMENTS + \
               EASTERN_TOURNAMENTS
+
+REGIONS = ['western', 'central', 'eastern', 'national']

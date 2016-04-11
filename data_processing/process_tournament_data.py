@@ -43,16 +43,21 @@ def update_player_trueskill(tournament, ratings_map):
     """ Update rating for each player by iterating over each match
     in chronological order and applying trueskill."""
     # Calculate TrueSkill from each map
+    region = tournament['region']
+
     for match in tournament['matches']:
         winner, loser = match['winner_id'], match['loser_id']
         # If the user exists in our map, we will take their current rating.
         # Otherwise we will initialize a 0 Rating placeholder player.
-        winner_rating = ratings_map.get(winner, trueskill.Rating(25, 25 / 3.0))
-        loser_rating = ratings_map.get(loser, trueskill.Rating(25, 25 / 3.0))
-        winner_rating, loser_rating = trueskill.rate_1vs1(winner_rating, loser_rating)
+        winner_regional_ratings = ratings_map.setdefault(winner, {})
+        loser_regional_ratings = ratings_map.setdefault(loser, {})
+        winner_rating_in_region = winner_regional_ratings.get(region, trueskill.Rating(25, 25 / 3.0))
+        loser_rating_in_region = loser_regional_ratings.get(region, trueskill.Rating(25, 25 / 3.0))
+        winner_rating_in_region, loser_rating_in_region = \
+            trueskill.rate_1vs1(winner_rating_in_region, loser_rating_in_region)
         # Update the dictionary with new ratings
-        ratings_map[winner] = winner_rating
-        ratings_map[loser] = loser_rating
+        winner_regional_ratings[region] = winner_rating_in_region
+        loser_regional_ratings[region] = loser_rating_in_region
 
     return ratings_map
 
@@ -67,27 +72,25 @@ def build_user_matches_list(tournament, player_matches):
 
 
 def update_rankings(ratings_map,
-                    outfile='data/current_rankings.json', user_collection=None):
-    """ Build a list of rankings with the global ratings map. Update each
-    player in Mongo with their respective ranking and output the global ranking
-    list to a json_file. """
-    rankings = []
-    all_ratings = [(key, val) for key, val in ratings_map.items()]
-    all_ratings.sort(key=lambda x: x[1].mu - 3 * x[1].sigma, reverse=True)
-    for index, (player_name, rating) in enumerate(all_ratings):
-        rank = index + 1
-        rankings.append({'name': player_name, 'rating': rating.mu - 3 * rating.sigma, 'rank': rank})
-        # Update user data with new rank and rating
-        if user_collection:
-            update_command = {'$set': {'rank': rank, 'rating': rating.mu - 3 * rating.sigma}}
-            user_collection.update_one({'tag': player_name},
-                                       update_command,
-                                       upsert=True)
+                    outdir='data/', user_collection=None):
+    """ Build a list of rankings with the ratings map. Update each
+    player in Mongo with their respective regional rankings and output
+    regional rankings to json files. """
+    ratings_by_region = {}
 
-    ranks = {"ranks": rankings}
-    with open(outfile, 'w') as ranking_file:
-        ranking_file.write(json.dumps(ranks))
-    return ranks
+    for player, player_ratings in ratings_map.items():
+        for region, rating in player_ratings.items():
+            regional_ratings = ratings_by_region.setdefault(region, [])
+            regional_ratings.append({'player': player, 'rating': rating.mu - 3 * rating.sigma})
+
+    for region, ratings in ratings_by_region.items():
+        ratings.sort(key=lambda x: x['rating'], reverse=True)
+
+    for region, ratings in ratings_by_region.items():
+        with open(outdir + region + '_rankings.json', 'w') as ranking_file:
+            ranking_file.write(json.dumps(ratings))
+
+    # TODO: update ratings data in mongo
 
 
 def build_all_players_list(ratings_map, outfile='data/all_players.json'):
