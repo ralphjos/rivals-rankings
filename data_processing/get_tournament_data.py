@@ -60,9 +60,9 @@ def upload_tournament_data(data, client=CLIENT):
 
 
 # regions
-EAST = 'east'
+EAST = 'eastern'
 CENTRAL = 'central'
-WEST = 'west'
+WEST = 'western'
 GET_GOOD = 'getgood'
 NATIONAL = 'national'
 
@@ -85,7 +85,6 @@ def main(client=CLIENT):
     db = client['production']
     db.drop_collection('tournaments')
 
-    print CHALLONGE_KEY
     # fetch tournament data
     for tournament in TOURNAMENTS:
         print "Fetching data for tournament: " + tournament

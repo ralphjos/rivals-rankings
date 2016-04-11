@@ -90,7 +90,7 @@ def update_rankings(ratings_map,
 
     for region, ratings in ratings_by_region.items():
         with open(outdir + region + '_rankings.json', 'w') as ranking_file:
-            ranking_file.write(json.dumps({'ranks': ratings}))
+            ranking_file.write(json.dumps({'ranks': ratings, 'region': region.title()}))
 
     # TODO: update ratings data in mongo
 
