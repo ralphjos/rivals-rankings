@@ -28,6 +28,7 @@ def update_all_tournament_matches(tournament):
     """ Update all tournament matches for a tournament to use the tag that the
     player entered as rather than an id. """
     # Build a map of player_id to player_name
+    print "TOURNAMENT", tournament
     id_to_name = {}
     for player in tournament['players']:
         id_to_name[player['id']] = player['name']

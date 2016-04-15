@@ -65,6 +65,7 @@ CENTRAL = 'central'
 WEST = 'western'
 GET_GOOD = 'getgood'
 NATIONAL = 'national'
+EUROPE = 'europe'
 
 
 def determine_region(tournament):
@@ -76,20 +77,23 @@ def determine_region(tournament):
         return CENTRAL
     elif EAST in tournament_name:
         return EAST
-    else:
+    elif GET_GOOD in tournament_name or NATIONAL in tournament_name:
         return NATIONAL
+    else:
+        return EUROPE
 
 
 def main(client=CLIENT):
     # clear current tournament data
     db = client['production']
-    db.drop_collection('tournaments')
+    tournament_collection = db.tournaments
 
     # fetch tournament data
     for tournament in TOURNAMENTS:
         print "Fetching data for tournament: " + tournament
-        tournament_data = get_tournament_data(tournament)
-        upload_tournament_data(tournament_data)
+        if tournament_collection.find_one({"tournament" : tournament}) == None:
+            tournament_data = get_tournament_data(tournament)
+            upload_tournament_data(tournament_data)
 
 
 if __name__ == '__main__':
