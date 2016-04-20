@@ -2,7 +2,7 @@
 Before Nightly Processing
 ==========
 - Get players and matches data from challonge -> "tournaments" collection
-- Get user records for tournaments they entered -> store in "users" collection
+- Get player records for tournaments they entered -> store in "players" collection
 
 Apply TrueSkill Algorithm
 =========
@@ -12,9 +12,9 @@ Apply TrueSkill Algorithm
 
 Upsert Data
 =========
-- Store all of a user's matches on their user record.
+- Store all of a player's matches on their player record.
 - Sort by rating to produce Rankings -> data/current_rankings.json
-- Upsert ratings to user records & upsert ranking to user record.
+- Upsert ratings to player records & upsert ranking to player record.
 """
 import json
 import os
@@ -23,12 +23,17 @@ import trueskill
 
 from collections import defaultdict
 
+# Initialize pointers to Mongo collections
+CLIENT = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
+DB = CLIENT['production']
+TOURNAMENTS_COLLECTION = DB['tournaments']
+PLAYER_COLLECTION = DB['players']
+
 
 def update_all_tournament_matches(tournament):
     """ Update all tournament matches for a tournament to use the tag that the
     player entered as rather than an id. """
     # Build a map of player_id to player_name
-    print "TOURNAMENT", tournament
     id_to_name = {}
     for player in tournament['players']:
         id_to_name[player['id']] = player['name']
@@ -37,110 +42,90 @@ def update_all_tournament_matches(tournament):
     for match in tournament['matches']:
         match['winner_id'] = id_to_name[match['winner_id']]
         match['loser_id'] = id_to_name[match['loser_id']]
+
     return tournament
 
 
-def update_player_trueskill(tournament, ratings_map):
+def update_player_trueskill(tournament):
     """ Update rating for each player by iterating over each match
     in chronological order and applying trueskill."""
-    # Calculate TrueSkill from each map
-    region = tournament['region']
 
+    # Calculate TrueSkill from each map
+    def get_trueskill_rating(player_db_object, match_region):
+        if player_db_object and region in player_db_object['ratings']:
+            mu = player_db_object['ratings'][match_region]['mu']
+            sigma = player_db_object['ratings'][match_region]['sigma']
+            return trueskill.Rating(mu=mu, sigma=sigma)
+
+        return trueskill.Rating(mu=25, sigma=25 / 3.0)
+
+    region = tournament['region']
     for match in tournament['matches']:
         winner, loser = match['winner_id'], match['loser_id']
-        # If the user exists in our map, we will take their current rating.
+        # If the player exists in our map, we will take their current rating.
         # Otherwise we will initialize a 0 Rating placeholder player.
-        winner_regional_ratings = ratings_map.setdefault(winner, {})
-        loser_regional_ratings = ratings_map.setdefault(loser, {})
-        winner_rating_in_region = winner_regional_ratings.get(region, trueskill.Rating(25, 25 / 3.0))
-        loser_rating_in_region = loser_regional_ratings.get(region, trueskill.Rating(25, 25 / 3.0))
-        winner_rating_in_region, loser_rating_in_region = \
-            trueskill.rate_1vs1(winner_rating_in_region, loser_rating_in_region)
-        # Update the dictionary with new ratings
-        winner_regional_ratings[region] = winner_rating_in_region
-        loser_regional_ratings[region] = loser_rating_in_region
+        winner_db_object = PLAYER_COLLECTION.find_one({'tag': winner})
 
-    return ratings_map
+        loser_db_object = PLAYER_COLLECTION.find_one({'tag': loser})
+
+        winner_regional_rating = get_trueskill_rating(winner_db_object, region)
+        loser_regional_rating = get_trueskill_rating(loser_db_object, region)
+
+        updated_winner_regional_rating, loser_regional_rating = \
+            trueskill.rate_1vs1(winner_regional_rating, loser_regional_rating)
+
+        PLAYER_COLLECTION.update_one({'tag': winner},
+                                     {
+                                         '$set': {
+                                             'ratings.' + region: {
+                                                 'mu': updated_winner_regional_rating.mu,
+                                                 'sigma': updated_winner_regional_rating.sigma
+                                             }
+                                         }
+                                     },
+                                     upsert=True)
+        
+        PLAYER_COLLECTION.update_one({'tag': loser},
+                                     {
+                                         '$set': {
+                                             'ratings.' + region: {
+                                                     'mu': loser_regional_rating.mu,
+                                                     'sigma': loser_regional_rating.sigma
+                                             }
+                                         }
+                                     },
+                                     upsert=True)
 
 
-def build_user_matches_list(tournament, player_matches):
-    """ Build list of matches for each user."""
+def build_player_matches_list(tournament, player_matches):
+    """ Build list of matches for each player."""
     for match in tournament['matches']:
         winner, loser = match['winner_id'], match['loser_id']
         player_matches[winner].append(match)
         player_matches[loser].append(match)
     return player_matches
 
-
-def update_rankings(ratings_map,
-                    outdir='data/', user_collection=None):
-    """ Build a list of rankings with the ratings map. Update each
-    player in Mongo with their respective regional rankings and output
-    regional rankings to json files. """
-    ratings_by_region = {}
-
-    for player, player_ratings in ratings_map.items():
-        for region, rating in player_ratings.items():
-            regional_ratings = ratings_by_region.setdefault(region, [])
-            regional_ratings.append({'name': player, 'rating': rating.mu - 3 * rating.sigma})
-
-    for region, ratings in ratings_by_region.items():
-        ratings.sort(key=lambda x: x['rating'], reverse=True)
-        for index, rating in enumerate(ratings):
-            rating['rank'] = index + 1
-
-    for region, ratings in ratings_by_region.items():
-        with open(outdir + region + '_rankings.json', 'w') as ranking_file:
-            ranking_file.write(json.dumps({'ranks': ratings, 'region': region.title()}))
-
-    # TODO: update ratings data in mongo
-
-
-def build_all_players_list(ratings_map, outfile='data/all_players.json'):
-    """ Build a list of all players and output to a json file."""
-    all_players = {"players": [x for x in ratings_map.keys()]}
-    with open(outfile, 'w') as all_players_file:
-        all_players_file.write(json.dumps(all_players))
-    return all_players
-
-
 def main():
     """ Nightly processing main hook."""
-    # Initialize pointers to Mongo collections
-    client = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
-    db = client['production']
-    db.drop_collection('users')
-    tournaments_collection = db['tournaments']
-    user_collection = db['users']
+    tournaments = list(TOURNAMENTS_COLLECTION.find())
 
-    tournaments = {tourney['tournament']: tourney for \
-                   tourney in tournaments_collection.find()}
-
-    for tid, tournament in tournaments.items():
-        tournaments[tid] = update_all_tournament_matches(tournament)
+    for tournament in tournaments:
+        tournament = update_all_tournament_matches(tournament)
 
     # Iterate over each tournament chronologically and update trueskill
-    ordered_tournaments = tournaments.values()
-    ordered_tournaments.sort(key=lambda x: x['created_at'])
-    ratings_map = {}
-    for tournament in ordered_tournaments:
-        update_player_trueskill(tournament, ratings_map)
+    tournaments.sort(key=lambda x: x['created_at'])
 
-    # Update list of matches on each individual user record
+    for tournament in tournaments:
+        update_player_trueskill(tournament)
+
+    # Update list of matches on each individual player record
     player_matches = defaultdict(list)
-    for tournament in ordered_tournaments:
-        build_user_matches_list(tournament, player_matches)
+    for tournament in tournaments:
+        build_player_matches_list(tournament, player_matches)
     for tag, matches in player_matches.items():
-        user_collection.update_one({'tag': tag},
+        PLAYER_COLLECTION.update_one({'tag': tag},
                                    {'$set': {'matches': matches}},
                                    upsert=True)
-
-    # Update rankings for each user record and write rankings to json file
-    update_rankings(ratings_map, user_collection=user_collection)
-
-    # Build a list of all players and store in json file
-    build_all_players_list(ratings_map)
-
 
 if __name__ == '__main__':
     main()

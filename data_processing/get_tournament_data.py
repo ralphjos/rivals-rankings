@@ -23,10 +23,17 @@ def get_tournament_data(tournament):
         for match in match_list:
             completed_at = match['match']['updated_at']
             if completed_at is None:
-                print tournament
+                print "completed_at is None in tournament " + tournament
+
             winner_id = match['match']['winner_id']
             loser_id = match['match']['loser_id']
-            data = {'completed_at': completed_at, 'winner_id': winner_id, 'loser_id': loser_id}
+            scores_csv = match['match']['scores_csv']
+
+            # if winner_id is None:
+            #     print "Winner ID is None in tournament " + tournament
+            #     continue
+
+            data = {'completed_at': completed_at, 'winner_id': winner_id, 'loser_id': loser_id, 'scores_csv': scores_csv}
             match_data.append(data)
         return match_data
 
@@ -91,7 +98,7 @@ def main(client=CLIENT):
     # fetch tournament data
     for tournament in TOURNAMENTS:
         print "Fetching data for tournament: " + tournament
-        if tournament_collection.find_one({"tournament" : tournament}) == None:
+        if tournament_collection.find_one({"tournament" : tournament}) is None:
             tournament_data = get_tournament_data(tournament)
             upload_tournament_data(tournament_data)
 
