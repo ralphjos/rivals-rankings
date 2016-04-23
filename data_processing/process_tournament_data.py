@@ -64,9 +64,9 @@ def update_player_trueskill(tournament):
         winner, loser = match['winner_id'], match['loser_id']
         # If the player exists in our map, we will take their current rating.
         # Otherwise we will initialize a 0 Rating placeholder player.
-        winner_db_object = PLAYER_COLLECTION.find_one({'tag': winner})
+        winner_db_object = PLAYER_COLLECTION.find_one({'name': winner})
 
-        loser_db_object = PLAYER_COLLECTION.find_one({'tag': loser})
+        loser_db_object = PLAYER_COLLECTION.find_one({'name': loser})
 
         winner_regional_rating = get_trueskill_rating(winner_db_object, region)
         loser_regional_rating = get_trueskill_rating(loser_db_object, region)
@@ -74,7 +74,7 @@ def update_player_trueskill(tournament):
         updated_winner_regional_rating, loser_regional_rating = \
             trueskill.rate_1vs1(winner_regional_rating, loser_regional_rating)
 
-        PLAYER_COLLECTION.update_one({'tag': winner},
+        PLAYER_COLLECTION.update_one({'name': winner},
                                      {
                                          '$set': {
                                              'ratings.' + region: {
@@ -84,13 +84,13 @@ def update_player_trueskill(tournament):
                                          }
                                      },
                                      upsert=True)
-        
-        PLAYER_COLLECTION.update_one({'tag': loser},
+
+        PLAYER_COLLECTION.update_one({'name': loser},
                                      {
                                          '$set': {
                                              'ratings.' + region: {
-                                                     'mu': loser_regional_rating.mu,
-                                                     'sigma': loser_regional_rating.sigma
+                                                 'mu': loser_regional_rating.mu,
+                                                 'sigma': loser_regional_rating.sigma
                                              }
                                          }
                                      },
@@ -105,12 +105,13 @@ def build_player_matches_list(tournament, player_matches):
         player_matches[loser].append(match)
     return player_matches
 
+
 def main():
     """ Nightly processing main hook."""
     tournaments = list(TOURNAMENTS_COLLECTION.find())
 
     for tournament in tournaments:
-        tournament = update_all_tournament_matches(tournament)
+        update_all_tournament_matches(tournament)
 
     # Iterate over each tournament chronologically and update trueskill
     tournaments.sort(key=lambda x: x['created_at'])
@@ -122,10 +123,11 @@ def main():
     player_matches = defaultdict(list)
     for tournament in tournaments:
         build_player_matches_list(tournament, player_matches)
-    for tag, matches in player_matches.items():
-        PLAYER_COLLECTION.update_one({'tag': tag},
-                                   {'$set': {'matches': matches}},
-                                   upsert=True)
+    for name, matches in player_matches.items():
+        PLAYER_COLLECTION.update_one({'name': name},
+                                     {'$set': {'matches': matches}},
+                                     upsert=True)
+
 
 if __name__ == '__main__':
     main()
