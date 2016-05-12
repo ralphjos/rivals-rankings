@@ -30,17 +30,18 @@ def index():
 
 @application.route("/rankings/<region>")
 def rankings(region='national'):
-    players_in_region = list(PLAYER_COLLECTION.find({'ratings.' + region: {'$exists': True}},
-                                                    {'name': 1, 'ratings.' + region: 1}))
+    players_in_region = list(PLAYER_COLLECTION.find({'region': {'$ne': 'europe'}}, {'name': 1, 'rating': 1})) if region == 'national' else \
+        list(PLAYER_COLLECTION.find({'region': region}, {'name': 1, 'rating': 1}))
 
+    print players_in_region
     players_in_region = sorted(players_in_region,
-                               key=lambda x: x['ratings'][region]['mu'] - 3 * x['ratings'][region]['sigma'],
+                               key=lambda x: x['rating']['mu'] - 3 * x['rating']['sigma'],
                                reverse=True)
 
     ranks = []
     rank = 1
     for player in players_in_region:
-        rating = player['ratings'][region]['mu'] - 3 * player['ratings'][region]['sigma']
+        rating = player['rating']['mu'] - 3 * player['rating']['sigma']
         name = player['name']
         data = {'rating': rating, 'name': name, 'rank': rank}
         ranks.append(data)
@@ -74,14 +75,13 @@ def autoseed(tournament):
     password = request.args.get('password')
 
     if password is os.environ.get('AUTOSEED_PASSWORD'):
-        region = determine_region(tournament)
         participants = get_tournament_participants()
 
-        players_in_region = list(PLAYER_COLLECTION.find({'ratings.' + region: {'$exists': True}},
-                                                        {'name': 1, 'ratings.' + region: 1}))
+        players_in_region = list(PLAYER_COLLECTION.find({'rating': {'$exists': True}},
+                                                        {'name': 1, 'rating': 1}))
 
         players_in_region = sorted(players_in_region,
-                                   key=lambda x: x['ratings'][region]['mu'] - 3 * x['ratings'][region]['sigma'],
+                                   key=lambda x: x['rating']['mu'] - 3 * x['rating']['sigma'],
                                    reverse=True)
 
         current_rankings = {}
