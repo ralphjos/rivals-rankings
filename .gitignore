@@ -2,3 +2,4 @@
 node_modules/
 venv/
 .idea/
+environment_variables
