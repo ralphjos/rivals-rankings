@@ -80,7 +80,7 @@ def autoseed(tournament):
 
     password = request.args.get('password')
 
-    if password is os.environ.get('AUTOSEED_PASSWORD'):
+    if password == os.environ.get('AUTOSEED_PASSWORD'):
         participants = get_tournament_participants()
 
         players_in_region = list(PLAYER_COLLECTION.find({'rating': {'$exists': True}},
