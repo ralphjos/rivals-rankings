@@ -1,14 +1,17 @@
 import json
 import os
 import pymongo
-from data_processing.get_tournament_data import determine_region
 
 from flask import Flask, request, Response, render_template, jsonify
+from flask_cache import Cache, current_app
 from requests import get, put
 
-application = Flask(__name__,
-                    template_folder='frontend',
-                    static_folder='frontend')
+app = Flask(__name__,
+            template_folder='frontend',
+            static_folder='frontend')
+
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache.init_app(app)
 
 # Set up mongo client and collections
 CLIENT = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
@@ -23,14 +26,17 @@ CHALLONGE_KEY = os.environ.get('CHALLONGE_KEY')
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-@application.route("/", methods=['GET'])
+@app.route("/", methods=['GET'])
+@cache.cached(timeout=86400)
 def index():
     return render_template('index.html')
 
 
-@application.route("/rankings/<region>")
+@app.route("/rankings/<region>")
+@cache.memoize(timeout=86400)
 def rankings(region='national'):
-    players_in_region = list(PLAYER_COLLECTION.find({'region': {'$ne': 'europe'}}, {'name': 1, 'rating': 1})) if region == 'national' else \
+    players_in_region = list(
+        PLAYER_COLLECTION.find({'region': {'$ne': 'europe'}}, {'name': 1, 'rating': 1})) if region == 'national' else \
         list(PLAYER_COLLECTION.find({'region': region}, {'name': 1, 'rating': 1}))
 
     print players_in_region
@@ -52,7 +58,7 @@ def rankings(region='national'):
     return jsonify(**result)
 
 
-@application.route("/players")
+@app.route("/players")
 def all_players():
     path = os.path.join(CURRENT_DIR, 'data_processing/data/all_players.json')
     with open(path, 'r') as data:
@@ -61,7 +67,7 @@ def all_players():
                     mimetype='application/json')
 
 
-@application.route("/autoseed/<tournament>")
+@app.route("/autoseed/<tournament>")
 def autoseed(tournament):
     def get_tournament_participants():
         url = 'https://api.challonge.com/v1/tournaments/{}/{}.json'
@@ -105,6 +111,7 @@ def autoseed(tournament):
 
     return "Seeding successful.  pls check the bottom seeds and manually adjust accordingly thx!!!"
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    application.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
