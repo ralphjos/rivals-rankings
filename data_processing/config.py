@@ -15,7 +15,8 @@ NATIONAL_TOURNAMENTS = [
     'narivals-nationalchampionshipseries7',
     'narivals-nationalchampionshipseries8',
     'narivals-nationalchampionshipseries9',
-    'narivals-nationalchampionshipseries10'
+    'narivals-nationalchampionshipseries10',
+    'narivals-nationalchampionshipseries11'
 ]
 
 WESTERN_TOURNAMENTS = [
