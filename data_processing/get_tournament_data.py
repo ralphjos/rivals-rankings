@@ -6,6 +6,8 @@ import os
 from requests import get
 from config import TOURNAMENTS
 
+DATABASE_NAME = 'production'
+
 CLIENT = pymongo.MongoClient(os.environ.get('MONGOLAB_URI'))
 CHALLONGE_KEY = os.environ.get('CHALLONGE_KEY')
 TOURNAMENTS = TOURNAMENTS
@@ -62,7 +64,7 @@ def get_tournament_data(tournament):
 
 def upload_tournament_data(data, client=CLIENT):
     """ Insert tournament data into Mongo."""
-    tournaments_collection = client['production']['tournaments']
+    tournaments_collection = client[DATABASE_NAME]['tournaments']
     tournaments_collection.insert(data)
 
 
@@ -90,13 +92,12 @@ def determine_region(tournament):
         return EUROPE
 
 
-def main(client=CLIENT):
-    # clear current tournament data
-    db = client['production']
+def main(client=CLIENT, tournaments=TOURNAMENTS):
+    db = client[DATABASE_NAME]
     tournament_collection = db.tournaments
 
     # fetch tournament data
-    for tournament in TOURNAMENTS:
+    for tournament in tournaments:
         print "Fetching data for tournament: " + tournament
         if tournament_collection.find_one({"tournament" : tournament}) is None:
             tournament_data = get_tournament_data(tournament)

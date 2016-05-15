@@ -51,10 +51,13 @@ def update_player_trueskill(tournament):
     in chronological order and applying trueskill."""
 
     # Calculate TrueSkill from each map
-    def get_trueskill_rating(player_db_object, match_region):
-        if player_db_object and region in player_db_object['ratings']:
-            mu = player_db_object['ratings'][match_region]['mu']
-            sigma = player_db_object['ratings'][match_region]['sigma']
+    def is_local(region):
+        return region != 'national' and region != 'europe'
+
+    def get_trueskill_rating(player_db_object):
+        if player_db_object and player_db_object['rating']:
+            mu = player_db_object['rating']['mu']
+            sigma = player_db_object['rating']['sigma']
             return trueskill.Rating(mu=mu, sigma=sigma)
 
         return trueskill.Rating(mu=25, sigma=25 / 3.0)
@@ -68,19 +71,26 @@ def update_player_trueskill(tournament):
 
         loser_db_object = PLAYER_COLLECTION.find_one({'name': loser})
 
-        winner_regional_rating = get_trueskill_rating(winner_db_object, region)
-        loser_regional_rating = get_trueskill_rating(loser_db_object, region)
+        winner_regional_rating = get_trueskill_rating(winner_db_object)
+        loser_regional_rating = get_trueskill_rating(loser_db_object)
 
         updated_winner_regional_rating, loser_regional_rating = \
             trueskill.rate_1vs1(winner_regional_rating, loser_regional_rating)
 
+        winner_region = region if winner_db_object is None or not is_local(winner_db_object['region']) else winner_db_object['region']
+        loser_region = region if loser_db_object is None or not is_local(loser_db_object['region']) else loser_db_object['region']
+
+        if winner == 'ralphjos':
+            print repr(updated_winner_regional_rating.mu) + '\n' + repr(updated_winner_regional_rating.sigma)
+
         PLAYER_COLLECTION.update_one({'name': winner},
                                      {
                                          '$set': {
-                                             'ratings.' + region: {
+                                             'rating': {
                                                  'mu': updated_winner_regional_rating.mu,
                                                  'sigma': updated_winner_regional_rating.sigma
-                                             }
+                                             },
+                                             'region': winner_region
                                          }
                                      },
                                      upsert=True)
@@ -88,10 +98,11 @@ def update_player_trueskill(tournament):
         PLAYER_COLLECTION.update_one({'name': loser},
                                      {
                                          '$set': {
-                                             'ratings.' + region: {
+                                             'rating': {
                                                  'mu': loser_regional_rating.mu,
                                                  'sigma': loser_regional_rating.sigma
-                                             }
+                                             },
+                                             'region': loser_region
                                          }
                                      },
                                      upsert=True)
