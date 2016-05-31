@@ -39,7 +39,6 @@ def rankings(region='national'):
         PLAYER_COLLECTION.find({'region': {'$ne': 'europe'}}, {'name': 1, 'rating': 1})) if region == 'national' else \
         list(PLAYER_COLLECTION.find({'region': region}, {'name': 1, 'rating': 1}))
 
-    print players_in_region
     players_in_region = sorted(players_in_region,
                                key=lambda x: x['rating']['mu'] - 3 * x['rating']['sigma'],
                                reverse=True)

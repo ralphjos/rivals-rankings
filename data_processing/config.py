@@ -17,7 +17,8 @@ NATIONAL_TOURNAMENTS = [
     'narivals-nationalchampionshipseries9',
     'narivals-nationalchampionshipseries10',
     'narivals-nationalchampionshipseries11',
-    'narivals-nationalchampionshipseries12'
+    'narivals-nationalchampionshipseries12',
+    'narivals-ncs13'
 ]
 
 WESTERN_TOURNAMENTS = [
@@ -30,7 +31,8 @@ WESTERN_TOURNAMENTS = [
     'narivals-WesternChampionshipSeries7',
     'narivals-WesternChampionshipSeries8',
     'narivals-WesternChampionshipSeries9',
-    'narivals-WesternChampionshipSeries10'
+    'narivals-WesternChampionshipSeries10',
+    'narivals-WesternChampionshipSeries11'
 ]
 
 CENTRAL_TOURNAMENTS = [
@@ -43,7 +45,8 @@ CENTRAL_TOURNAMENTS = [
     'narivals-CentralChampionshipSeries7',
     'narivals-CentralChampionshipSeries8',
     'CentralChampionshipSeries9',
-    'narivals-CentralChampionshipSeries10'
+    'narivals-CentralChampionshipSeries10',
+    'narivals-CentralChampionshipSeries11'
 ]
 
 EASTERN_TOURNAMENTS = [
@@ -56,7 +59,8 @@ EASTERN_TOURNAMENTS = [
     'narivals-EasternChampionshipSeries7',
     'narivals-EasternChampionshipSeries8',
     'narivals-EasternChampionshipSeries9',
-    'narivals-EasternChampionshipSeries10'
+    'narivals-EasternChampionshipSeries10',
+    'narivals-EasternChampionshipSeries11'
 ]
 
 EUROPE_TOURNAMENTS = [
