@@ -1,3 +1,5 @@
+This project has been re-done in Node.  Please see https://github.com/ralphjos/node-rivals-rankings
+
 Overview
 ========
 
